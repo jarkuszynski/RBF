@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,6 +9,8 @@ namespace RBF_DATA
 {
     public class NeuralNetwork
     {
+        public List<double> ErrorX { get; set; }
+        public List<double> ErrorY { get; set; }
         public DataGetter DataGetter { get; set; }
         public List<double> InputData { get; set; }
         public List<double> ExpectedData { get; set; }
@@ -16,7 +19,7 @@ namespace RBF_DATA
         public double LearnRate { get; set; }
         public double Momentum { get; set; }
 
-        public NeuralNetwork(DataGetter dataGetter, double learnRate, double momentum, int numberOfRadialNeurons)
+        public NeuralNetwork(List<double> inputData, double learnRate, double momentum, int numberOfRadialNeurons)
         {
             Random random = new Random();
             OutputLayer = new List<Neuron>();
@@ -24,11 +27,9 @@ namespace RBF_DATA
             InputData = new List<double>();
             ExpectedData = new List<double>();
 
-            DataGetter = dataGetter;
             LearnRate = learnRate;
             Momentum = momentum;
-            InputData = DataGetter.getInputData();
-            ExpectedData = DataGetter.getExpectedData();
+            InputData = inputData;
             int randomCentre;
             for (int i = 0; i < numberOfRadialNeurons; i++)
             {
@@ -39,20 +40,28 @@ namespace RBF_DATA
             OutputLayer.Add(new Neuron(random, HiddenLayer));
         }
 
-        public void Train(int numberOfEpochs)
+        public void Train(int numberOfEpochs, DataGetter dataGetter)
         {
-            List<RadialNeuron> EndRadialNeurons = new List<RadialNeuron>(); ;
+            InputData = new List<double>();
+            ExpectedData = new List<double>();
+            ErrorX = new List<double>();
+            ErrorY = new List<double>();
+            InputData = dataGetter.getInputData();
+            ExpectedData = dataGetter.getExpectedData();
+            double error = 0;
             for (int i = 0; i < numberOfEpochs; i++)
             {
+                error = 0;
+
+                /* WYBOR SASIADUJACYCH NEURONOW DLA KAZDEGO NEURONU ABY ZAKTUALIZOWAC SIGME */
+                foreach (var radialNeuron in HiddenLayer)
+                {
+                    var tempRadialNeurons = HiddenLayer.OrderBy(n => n.EuclideanDistance(radialNeuron)).Take(5).Skip(1).ToList();       //gdyby cos nie dzialalo warto to przeanaliozwac
+                    radialNeuron.UpdateSigma(tempRadialNeurons);
+                }
+
                 for (int j = 0; j < InputData.Count; j++)
                 {
-                    /* WYBOR SASIADUJACYCH NEURONOW DLA KAZDEGO NEURONU ABY ZAKTUALIZOWAC SIGME */
-                    foreach (var radialNeuron in HiddenLayer)
-                    {
-                        var tempRadialNeurons = HiddenLayer.OrderBy(n => n.EuclideanDistance(radialNeuron)).Take(5).Skip(1).ToList();       //gdyby cos nie dzialalo warto to przeanaliozwac
-                        radialNeuron.UpdateSigma(tempRadialNeurons);
-                    }
-
                     /* FORWARD PROPAGATION - RADIAL NEURONS */
                     HiddenLayer.ForEach(rn => rn.GaussianFunction(InputData[j]));
 
@@ -62,20 +71,41 @@ namespace RBF_DATA
                     /* BACKPROPAGATION - NEURONS */
                     OutputLayer.ForEach(n => n.CalculateGradient(ExpectedData[j]));
                     OutputLayer.ForEach(n => n.UpdateWeights(LearnRate, Momentum, HiddenLayer));
+                    error += MSE(ExpectedData[j]);
                 }
+                error = 1.0 * error / ExpectedData.Count;
+                ErrorX.Add(i);
+                ErrorY.Add(error);
+                if(i % (numberOfEpochs / 10.0) == 0)
+                    Console.WriteLine(error);
             }
         }
 
-        public List<double> Test()
+        public List<double> Test(DataGetter dataGetter)
         {
+            InputData = new List<double>();
+            ExpectedData = new List<double>();
+            InputData = dataGetter.getInputData();
+            ExpectedData = dataGetter.getExpectedData();
+            double error = 0;
             List<double> vs = new List<double>();
-            for (int i = 0; i < InputData.Count; i++)
+            for (int i = 0; i < dataGetter.getInputData().Count; i++)
             {
-                HiddenLayer.ForEach(rn => rn.GaussianFunction(InputData[i]));
+                HiddenLayer.ForEach(rn => rn.GaussianFunction(dataGetter.getInputData()[i]));
                 OutputLayer.ForEach(n => n.CalculateOutputValue(HiddenLayer));
                 vs.Add( OutputLayer[0].OutputValue);
+                error += MSE(ExpectedData[i]);
             }
+            error = 1.0 * error / ExpectedData.Count;
+            Console.WriteLine("BLAD APROKSYMACJI NA ZBIORZE TESTOWYM: " + error);
             return vs;
+        }
+
+        public double MSE(double expectedDataSample)
+        {
+            double result = 0;
+            result = OutputLayer.Sum(n => Math.Pow(n.CalculateError(expectedDataSample),2));
+            return result;
         }
     }
 }
