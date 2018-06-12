@@ -30,7 +30,7 @@ namespace RBF_DATA
 
         public void GaussianFunction(double inputValue)
         {
-            double numerator = -1.0 * EuclideanDistance(inputValue);
+            double numerator = -1.0 * Math.Pow(EuclideanDistance(inputValue), 2) ;
             double denominator = 1.0 * 2 * Sigma * Sigma;
             OutputValue = Math.Exp((numerator / denominator) * 1.0) * 1.0;
         }

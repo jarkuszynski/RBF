@@ -50,6 +50,8 @@ namespace RBF_DATA
             {
                 error = 0;
 
+
+
                 /* WYBOR SASIADUJACYCH NEURONOW DLA KAZDEGO NEURONU ABY ZAKTUALIZOWAC SIGME */
                 foreach (var radialNeuron in HiddenLayer)
                 {
