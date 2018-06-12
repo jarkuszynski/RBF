@@ -6,7 +6,7 @@ using System.Threading;
 
 namespace AwokeKnowing.GnuplotCSharp
 {
-    class GnuPlot
+    internal class GnuPlot
     {
         public static string PathToGnuplot = @"C:\Program Files\gnuplot\bin";
         private static Process ExtPro;
@@ -115,12 +115,14 @@ namespace AwokeKnowing.GnuplotCSharp
             PlotBuffer.Add(new StoredPlot(filenameOrFunction, options));
             Plot(PlotBuffer);
         }
+
         public static void Plot(double[] y, string options = "")
         {
             if (!Hold) PlotBuffer.Clear();
             PlotBuffer.Add(new StoredPlot(y, options));
             Plot(PlotBuffer);
         }
+
         public static void Plot(double[] x, double[] y, string options = "")
         {
             if (!Hold) PlotBuffer.Clear();
@@ -136,6 +138,7 @@ namespace AwokeKnowing.GnuplotCSharp
             PlotBuffer.Add(p);
             Plot(PlotBuffer);
         }
+
         public static void Contour(int sizeY, double[] z, string options = "", bool labelContours = true)
         {
             if (!Hold) PlotBuffer.Clear();
@@ -144,6 +147,7 @@ namespace AwokeKnowing.GnuplotCSharp
             PlotBuffer.Add(p);
             Plot(PlotBuffer);
         }
+
         public static void Contour(double[] x, double[] y, double[] z, string options = "", bool labelContours = true)
         {
             if (!Hold) PlotBuffer.Clear();
@@ -152,6 +156,7 @@ namespace AwokeKnowing.GnuplotCSharp
             PlotBuffer.Add(p);
             Plot(PlotBuffer);
         }
+
         public static void Contour(double[,] zz, string options = "", bool labelContours = true)
         {
             if (!Hold) PlotBuffer.Clear();
@@ -167,18 +172,21 @@ namespace AwokeKnowing.GnuplotCSharp
             PlotBuffer.Add(new StoredPlot(filenameOrFunction, options, PlotTypes.ColorMapFileOrFunction));
             Plot(PlotBuffer);
         }
+
         public static void HeatMap(int sizeY, double[] intensity, string options = "")
         {
             if (!Hold) PlotBuffer.Clear();
             PlotBuffer.Add(new StoredPlot(sizeY, intensity, options, PlotTypes.ColorMapZ));
             Plot(PlotBuffer);
         }
+
         public static void HeatMap(double[] x, double[] y, double[] intensity, string options = "")
         {
             if (!Hold) PlotBuffer.Clear();
             PlotBuffer.Add(new StoredPlot(x, y, intensity, options, PlotTypes.ColorMapXYZ));
             Plot(PlotBuffer);
         }
+
         public static void HeatMap(double[,] intensityGrid, string options = "")
         {
             if (!Hold) PlotBuffer.Clear();
@@ -192,6 +200,7 @@ namespace AwokeKnowing.GnuplotCSharp
             SPlotBuffer.Add(new StoredPlot(filenameOrFunction, options, PlotTypes.SplotFileOrFunction));
             SPlot(SPlotBuffer);
         }
+
         public static void SPlot(int sizeY, double[] z, string options = "")
         {
             if (!Hold) SPlotBuffer.Clear();
@@ -438,7 +447,7 @@ namespace AwokeKnowing.GnuplotCSharp
             if (flush) stream.Flush();
         }
 
-        static string plotPath(string path)
+        private static string plotPath(string path)
         {
             return "\"" + path.Replace(@"\", @"\\") + "\"";
         }
@@ -451,6 +460,7 @@ namespace AwokeKnowing.GnuplotCSharp
             GnupStWr.Flush();
             waitForFile(filename);
         }
+
         public static void LoadSetState(string filename = null)
         {
             if (filename == null)
@@ -460,7 +470,7 @@ namespace AwokeKnowing.GnuplotCSharp
         }
 
         //these makecontourFile functions should probably be merged into one function and use a StoredPlot parameter
-        static void makeContourFile(string fileOrFunction, string outputFile)//if it's a file, fileOrFunction needs quotes and escaped backslashes
+        private static void makeContourFile(string fileOrFunction, string outputFile)//if it's a file, fileOrFunction needs quotes and escaped backslashes
         {
             SaveSetState();
             Set("table " + plotPath(outputFile));
@@ -473,7 +483,7 @@ namespace AwokeKnowing.GnuplotCSharp
             waitForFile(outputFile);
         }
 
-        static void makeContourFile(double[] x, double[] y, double[] z, string outputFile)
+        private static void makeContourFile(double[] x, double[] y, double[] z, string outputFile)
         {
             SaveSetState();
             Set("table " + plotPath(outputFile));
@@ -488,7 +498,7 @@ namespace AwokeKnowing.GnuplotCSharp
             waitForFile(outputFile);
         }
 
-        static void makeContourFile(double[,] zz, string outputFile)
+        private static void makeContourFile(double[,] zz, string outputFile)
         {
             SaveSetState();
             Set("table " + plotPath(outputFile));
@@ -504,7 +514,7 @@ namespace AwokeKnowing.GnuplotCSharp
             waitForFile(outputFile);
         }
 
-        static void makeContourFile(int sizeY, double[] z, string outputFile)
+        private static void makeContourFile(int sizeY, double[] z, string outputFile)
         {
             SaveSetState();
             Set("table " + plotPath(outputFile));
@@ -519,8 +529,9 @@ namespace AwokeKnowing.GnuplotCSharp
             waitForFile(outputFile);
         }
 
-        static int contourLabelCount = 50000;
-        static void setContourLabels(string contourFile)
+        private static int contourLabelCount = 50000;
+
+        private static void setContourLabels(string contourFile)
         {
             var file = new System.IO.StreamReader(contourFile);
             string line;
@@ -535,13 +546,14 @@ namespace AwokeKnowing.GnuplotCSharp
             }
             file.Close();
         }
-        static void removeContourLabels()
+
+        private static void removeContourLabels()
         {
             while (contourLabelCount > 50000)
                 GnupStWr.WriteLine("unset object " + contourLabelCount + ";unset label " + contourLabelCount--);
         }
 
-        static bool waitForFile(string filename, int timeout = 10000)
+        private static bool waitForFile(string filename, int timeout = 10000)
         {
             Thread.Sleep(20);
             int attempts = timeout / 100;
@@ -581,7 +593,7 @@ namespace AwokeKnowing.GnuplotCSharp
         }
     }
 
-    enum PointStyles
+    internal enum PointStyles
     {
         Dot = 0,
         Plus = 1,
@@ -599,7 +611,7 @@ namespace AwokeKnowing.GnuplotCSharp
         SolidDiamond = 13
     }
 
-    enum PlotTypes
+    internal enum PlotTypes
     {
         PlotFileOrFunction,
         PlotY,
@@ -618,7 +630,7 @@ namespace AwokeKnowing.GnuplotCSharp
         SplotZ
     }
 
-    class StoredPlot
+    internal class StoredPlot
     {
         public string File = null;
         public string Function = null;
@@ -634,6 +646,7 @@ namespace AwokeKnowing.GnuplotCSharp
         public StoredPlot()
         {
         }
+
         public StoredPlot(string functionOrfilename, string options = "", PlotTypes plotType = PlotTypes.PlotFileOrFunction)
         {
             if (IsFile(functionOrfilename))

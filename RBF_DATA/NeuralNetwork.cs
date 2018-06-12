@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace RBF_DATA
 {
@@ -76,9 +73,11 @@ namespace RBF_DATA
                 error = 1.0 * error / ExpectedData.Count;
                 ErrorX.Add(i);
                 ErrorY.Add(error);
-                if(i % (numberOfEpochs / 10.0) == 0)
-                    Console.WriteLine(error);
+                //if(i % (numberOfEpochs / 10.0) == 0)
+                //    Console.WriteLine(error);
             }
+
+            Console.WriteLine("Blad sredniokwadratowy aproksymacji: " + error + "\n");
         }
 
         public List<double> Test(DataGetter dataGetter)
@@ -93,18 +92,18 @@ namespace RBF_DATA
             {
                 HiddenLayer.ForEach(rn => rn.GaussianFunction(dataGetter.getInputData()[i]));
                 OutputLayer.ForEach(n => n.CalculateOutputValue(HiddenLayer));
-                vs.Add( OutputLayer[0].OutputValue);
+                vs.Add(OutputLayer[0].OutputValue);
                 error += MSE(ExpectedData[i]);
             }
             error = 1.0 * error / ExpectedData.Count;
-            Console.WriteLine("BLAD APROKSYMACJI NA ZBIORZE TESTOWYM: " + error);
+            Console.WriteLine("Blad sredniokwadratowy aproksymacji: " + error);
             return vs;
         }
 
         public double MSE(double expectedDataSample)
         {
             double result = 0;
-            result = OutputLayer.Sum(n => Math.Pow(n.CalculateError(expectedDataSample),2));
+            result = OutputLayer.Sum(n => Math.Pow(n.CalculateError(expectedDataSample), 2));
             return result;
         }
     }
